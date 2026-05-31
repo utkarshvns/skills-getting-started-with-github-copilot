@@ -103,5 +103,23 @@ def signup_for_activity(activity_name: str, email: str):
         raise HTTPException(status_code=400, detail="Student already signed up")
 
     # Add student
+    if email in activity["participants"]:
+        raise HTTPException(status_code=400, detail="Student already registered")
+
     activity["participants"].append(email)
     return {"message": f"Signed up {email} for {activity_name}"}
+
+
+@app.delete("/activities/{activity_name}/participants")
+def remove_participant(activity_name: str, email: str):
+    if activity_name not in activities:
+        raise HTTPException(status_code=404, detail="Activity not found")
+
+    activity = activities[activity_name]
+    original_count = len(activity["participants"])
+    activity["participants"] = [participant for participant in activity["participants"] if participant != email]
+
+    if len(activity["participants"]) == original_count:
+        raise HTTPException(status_code=404, detail="Participant not found")
+
+    return {"message": f"Unregistered {email} from {activity_name}"}
